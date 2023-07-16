@@ -4,7 +4,7 @@ This project is dual-licensed under the following licenses:
 
 ## GNU General Public License version 3 (GPL-3.0)
 
-The source code and associated files in this repository are licensed under the terms of the GNU General Public License version 3 (GPL-3.0). You can find the full text of the GPL-3.0 license in the [GPL-3.0.txt](./GPL-3.0.txt) file.
+The source code and associated files in this repository are licensed under the terms of the GNU General Public License version 3 (GPL-3.0). You can find the full text of the GPL-3.0 license in the [GPL-3.0.txt](https://www.gnu.org/licenses/gpl-3.0.txt) file.
 
 ## Proprietary Commercial License
 
