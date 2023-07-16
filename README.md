@@ -6,7 +6,7 @@ Rebalancer is a asset rebalancing webservice written in Rust. It provides an eff
 
 ## License
 
-Rebalancer is licensed under both the GPL-3.0 and a commercial license. The commercial license allows for proprietary use and distribution, while the GPL-3.0 license permits free and open-source use, modification, and distribution. Please review the license terms included in the [LICENSE](./LICENSE) file for more details.
+Rebalancer is licensed under both the GPL-3.0 and a commercial license. The commercial license allows for proprietary use and distribution, while the GPL-3.0 license permits free and open-source use, modification, and distribution. Please review the license terms included in the [LICENSE](./LICENSE.md) file for more details.
 
 ## Contact
 
