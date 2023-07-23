@@ -27,14 +27,14 @@ async fn root_get() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Starting rebalancer webservice @ 127.0.0.1:8080");
-    
+    println!("Starting rebalancer webservice @ 0.0.0.0:8080");
+
     HttpServer::new(|| {
         App::new()
             .service(root_post)
             .service(root_get)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("0.0.0.0", 8080))?
     .run()
     .await
 }
