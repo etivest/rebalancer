@@ -44,17 +44,14 @@ impl AssetList {
 
 pub fn rebalance(config : &str) -> String {
     let mut json_result= serde_json::from_str::<AssetList>(config);
-    //println!("json_result {:#?}", json_result);
     match &mut json_result {
         Ok(json) => {
-            //println!("json {:#?}", json);
             calculate_current_percentage(json);
             calculate_target_amount(json);
             let validation_result = validate_data(json);
 
             match validation_result {
                 Ok(()) => {
-                    println!("{}", serde_json::to_string_pretty(json).unwrap());
                     return serde_json::to_string(json).unwrap();
                 }
                 Err(error) => {
@@ -63,7 +60,6 @@ pub fn rebalance(config : &str) -> String {
             }
         }
         Err(err) => {
-            eprintln!("Error deserializing json {}", err);
             return err.to_string();
         }
     }

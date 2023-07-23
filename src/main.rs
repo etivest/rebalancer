@@ -12,19 +12,27 @@
  * please contact etivest.com at etivest@etivest.com.
  */
 
-use actix_web::{post, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
 mod rebalance;
 
-#[post("/rb")]
-async fn rb(req: String) -> impl Responder {
+#[post("/")]
+async fn root_post(req: String) -> impl Responder {
     HttpResponse::Ok().body(rebalance::rebalance(&req))
+}
+
+#[get("/")]
+async fn root_get() -> impl Responder {
+    HttpResponse::Ok().body("rebalancer")
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    println!("Starting rebalancer webservice @ 127.0.0.1:8080");
+    
     HttpServer::new(|| {
         App::new()
-            .service(rb)
+            .service(root_post)
+            .service(root_get)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
