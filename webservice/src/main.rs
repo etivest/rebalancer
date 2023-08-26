@@ -13,7 +13,6 @@
  */
 
 use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
-mod rebalance;
 
 #[post("/")]
 async fn root_post(req: String) -> impl Responder {
