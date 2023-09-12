@@ -13,10 +13,43 @@
  */
 
 use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
+use serde::{Serialize, Deserialize};
+use bigdecimal;
+
+// Helper structs for JSON (de)serializing
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Asset {
+    pub name : String,
+    pub current_amount : bigdecimal::BigDecimal,
+    pub target_percentage : bigdecimal::BigDecimal, 
+}
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(transparent)]
+struct AssetList {
+    list: Vec<Asset>,
+}
 
 #[post("/")]
 async fn root_post(req: String) -> impl Responder {
-    HttpResponse::Ok().body(rebalance::rebalance(&req))
+    let json_result: Result<AssetList, serde_json::Error> = serde_json::from_str::<AssetList>(&req);
+    match json_result {
+        Ok(al) => {
+            let mut ral = rebalance::AssetList {
+            list: al.list.iter()
+            .map(|orig| rebalance::Asset {
+                name: orig.name.clone(),
+                current_amount: orig.current_amount.clone(),
+                target_percentage: orig.target_percentage.clone(),
+                current_percentage: bigdecimal::BigDecimal::from(0),
+                target_amount: bigdecimal::BigDecimal::from(0)
+            })
+            .collect()
+            };
+
+            HttpResponse::Ok().body(rebalance::AssetList::rebalance(&mut ral).unwrap())
+        },
+        Err(e) => HttpResponse::Ok().body(e.to_string()),
+        }
 }
 
 #[get("/")]

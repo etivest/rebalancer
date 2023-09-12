@@ -859,8 +859,6 @@ name = "rebalance"
 version = "0.1.0"
 dependencies = [
  "bigdecimal",
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -1204,7 +1202,10 @@ name = "webservice"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "bigdecimal",
  "rebalance",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
