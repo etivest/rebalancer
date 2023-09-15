@@ -12,15 +12,45 @@
  * please contact etivest.com at etivest@etivest.com.
  */
 
-use bigdecimal::{RoundingMode};
+use bigdecimal::{BigDecimal,RoundingMode};
 
 pub struct Asset {
-    pub name : String,
-    pub current_amount : bigdecimal::BigDecimal,
-    pub target_percentage : bigdecimal::BigDecimal,
-    pub current_percentage : bigdecimal::BigDecimal,
-    pub target_amount : bigdecimal::BigDecimal,
+    name : String,
+    current_amount : BigDecimal,
+    target_percentage : BigDecimal,
+    current_percentage : BigDecimal,
+    target_amount : BigDecimal,
 }
+
+impl Asset {
+    pub fn new(name: String, current_amount: BigDecimal, target_percentage: BigDecimal) -> Asset {
+        Asset {
+            name: name,
+            current_amount: current_amount,
+            target_percentage: target_percentage, 
+            current_percentage: BigDecimal::from(0),
+            target_amount: BigDecimal::from(0)
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn current_amount(&self) -> &BigDecimal {
+        &self.current_amount
+    }
+
+    pub fn target_percentage(&self) -> &BigDecimal {
+        &self.target_percentage
+    }
+
+    pub fn current_percentage(&self) -> &BigDecimal {
+        &self.target_amount
+    }
+
+}
+
 pub struct AssetList {
     pub list: Vec<Asset>,
 }
@@ -34,33 +64,40 @@ impl AssetList {
         self.list.iter().map(f).fold(T::default(), |acc, x| acc + x)
     }
 
-    pub fn rebalance(asset_list : & mut AssetList) -> std::result::Result<(), String> {
-        Self::calculate_current_percentage(asset_list);
-        Self::calculate_target_amount(asset_list);
-        Self::validate_data(asset_list)
+    pub fn rebalance(&mut self) -> std::result::Result<(), String> {
+        if self.list.len() < 2 {
+            return Err(format!("Rebalancing asset list of a size {} is pointless", self.list.len()));
+        }
+
+        self.calculate_current_percentage();
+        self.calculate_target_amount();
+        self.validate_data()
     }
 
-    fn validate_data(assets: &AssetList) -> std::result::Result<(), String> {
-        let sum_current_amount = assets.summarize_fields(|asset| asset.current_amount.clone());
-        let mut sum_current_percentage = assets.summarize_fields(|asset| asset.current_percentage.clone());
+    fn validate_data(&mut self) -> std::result::Result<(), String> {
+        if self.list.iter().any(|s| s.name.is_empty()) {
+            return Err("Empty asset name".to_string());
+        }
+
+        let sum_current_amount = self.summarize_fields(|asset| asset.current_amount.clone());
+        let mut sum_current_percentage = self.summarize_fields(|asset| asset.current_percentage.clone());
         // TODO fix rounding issue, use simple rounding for now
         sum_current_percentage = sum_current_percentage.with_scale_round(3, RoundingMode::HalfUp);
     
     
-        let mut sum_target_percentage = assets.summarize_fields(|asset| asset.target_percentage.clone());
+        let mut sum_target_percentage = self.summarize_fields(|asset| asset.target_percentage.clone());
         // TODO fix rounding issue, use simple rounding for now
         sum_target_percentage = sum_target_percentage.with_scale_round(3, RoundingMode::HalfUp);
     
-        let mut sum_target_amount = assets.summarize_fields(|asset| asset.target_amount.clone());
+        let mut sum_target_amount = self.summarize_fields(|asset| asset.target_amount.clone());
         // TODO fix rounding issue, use simple rounding for now
         sum_target_amount = sum_target_amount.with_scale_round(3, RoundingMode::HalfUp);
         
-        
-        if sum_current_percentage.ne(&bigdecimal::BigDecimal::from(100)) {
+        if sum_current_percentage.ne(&BigDecimal::from(100)) {
             return Err(format!("Sum of current percentage should be equal to 100%. Actual result is: {}", sum_current_percentage));
         }
     
-        if sum_target_percentage.ne(&bigdecimal::BigDecimal::from(100)) {
+        if sum_target_percentage.ne(&BigDecimal::from(100)) {
             return Err(format!("Sum of target percentage should be equal to 100%. Actual result is: {}", sum_target_percentage));
         }
         
@@ -71,17 +108,17 @@ impl AssetList {
         Ok(())
     }
     
-    fn calculate_current_percentage(assets : &mut AssetList) {
-        let sum_amount = assets.summarize_fields(|asset| asset.current_amount.clone());
-        for mut asset in assets.list.iter_mut() {
+    fn calculate_current_percentage(&mut self) {
+        let sum_amount = self.summarize_fields(|asset| asset.current_amount.clone());
+        for asset in self.list.iter_mut() {
             asset.current_percentage = &asset.current_amount * 100 / &sum_amount;
             // TODO fix decimal rounding / distributing issue (e.g. 3 assets are 99.999% instead of 100%)
         }
     }
     
-    fn calculate_target_amount(assets : &mut AssetList) {
-        let sum_amount = assets.summarize_fields(|asset| asset.current_amount.clone());
-        for mut asset in assets.list.iter_mut() {
+    fn calculate_target_amount(&mut self) {
+        let sum_amount = self.summarize_fields(|asset| asset.current_amount.clone());
+        for asset in self.list.iter_mut() {
             asset.target_amount = &sum_amount * &asset.target_percentage / 100;
             // TODO fix decimal rounding / distributing issue (e.g. 3 assets are 99.99USD instead of 100USD)
         }

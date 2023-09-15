@@ -14,14 +14,14 @@
 
 use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
 use serde::{Serialize, Deserialize};
-use bigdecimal;
+use bigdecimal::BigDecimal;
 
-// Helper structs for JSON (de)serializing
+// Helper structs for JSON deserializing
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Asset {
     pub name : String,
-    pub current_amount : bigdecimal::BigDecimal,
-    pub target_percentage : bigdecimal::BigDecimal, 
+    pub current_amount : BigDecimal,
+    pub target_percentage : BigDecimal, 
 }
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(transparent)]
@@ -36,13 +36,11 @@ async fn root_post(req: String) -> impl Responder {
         Ok(al) => {
             let mut ral = rebalance::AssetList {
             list: al.list.iter()
-            .map(|orig| rebalance::Asset {
-                name: orig.name.clone(),
-                current_amount: orig.current_amount.clone(),
-                target_percentage: orig.target_percentage.clone(),
-                current_percentage: bigdecimal::BigDecimal::from(0),
-                target_amount: bigdecimal::BigDecimal::from(0)
-            })
+            .map(|orig| rebalance::Asset::new(
+                orig.name.clone(),
+                orig.current_amount.clone(),
+                orig.target_percentage.clone(),
+            ))
             .collect()
             };
 
