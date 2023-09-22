@@ -13,15 +13,15 @@
  */
 
 use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
-use serde::{Serialize, Deserialize};
 use bigdecimal::BigDecimal;
+use serde::{Deserialize, Serialize};
 
 // Helper structs for JSON deserializing
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Asset {
-    pub name : String,
-    pub current_amount : BigDecimal,
-    pub target_percentage : BigDecimal, 
+    pub name: String,
+    pub current_amount: BigDecimal,
+    pub target_percentage: BigDecimal,
 }
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(transparent)]
@@ -34,20 +34,19 @@ async fn root_post(req: String) -> impl Responder {
     let json_result: Result<AssetList, serde_json::Error> = serde_json::from_str::<AssetList>(&req);
     match json_result {
         Ok(al) => {
-            let mut ral = rebalance::AssetList {
-            list: al.list.iter()
-            .map(|orig| rebalance::Asset::new(
-                orig.name.clone(),
-                orig.current_amount.clone(),
-                orig.target_percentage.clone(),
-            ))
-            .collect()
-            };
+            let mut ral = rebalance::AssetList::default();
+            al.list.iter().for_each(|orig| {
+                let _ret = ral.insert(rebalance::Asset::new(
+                    orig.name.clone(),
+                    orig.current_amount.clone(),
+                    orig.target_percentage.clone(),
+                ));
+            });
 
             HttpResponse::Ok().body(rebalance::AssetList::rebalance(&mut ral).unwrap())
-        },
-        Err(e) => HttpResponse::Ok().body(e.to_string()),
         }
+        Err(e) => HttpResponse::Ok().body(e.to_string()),
+    }
 }
 
 #[get("/")]
@@ -59,12 +58,8 @@ async fn root_get() -> impl Responder {
 async fn main() -> std::io::Result<()> {
     println!("Starting rebalancer webservice @ 0.0.0.0:8080");
 
-    HttpServer::new(|| {
-        App::new()
-            .service(root_post)
-            .service(root_get)
-    })
-    .bind(("0.0.0.0", 8080))?
-    .run()
-    .await
+    HttpServer::new(|| App::new().service(root_post).service(root_get))
+        .bind(("0.0.0.0", 8080))?
+        .run()
+        .await
 }
