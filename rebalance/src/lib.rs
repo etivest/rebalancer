@@ -80,7 +80,23 @@ impl AssetList {
     pub fn insert(&mut self, asset: Asset) -> Result<(), &'static str> {
         if self.assets.contains_key(&asset.name) {
             Err("Asset name already exists on a list")
-        } else {
+        }
+        else if asset.current_amount.lt(&BigDecimal::from(0)) {
+            Err("Asset current amount is negative")
+        }
+        else if asset.current_amount.eq(&BigDecimal::from(0)) {
+            Err("Asset current amount is zero")
+        }
+        else if asset.target_percentage.lt(&BigDecimal::from(0)) {
+            Err("Asset target percentage is negative")
+        }
+        else if asset.target_percentage.eq(&BigDecimal::from(0)) {
+            Err("Asset target percentage is zero")
+        }
+        else if asset.target_percentage.gt(&BigDecimal::from(100)) {
+            Err("Asset target percentage exceeds 100")
+        }
+        else {
             self.assets.insert(asset.name.clone(), asset);
             Ok(())
         }
